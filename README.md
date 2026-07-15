@@ -53,7 +53,7 @@ Everything is backed by one on-device SQLite file, via Drizzle ORM.
 - Liabilities tracking (loans, credit card dues) feeding into a true net-worth
   figure, rather than assets-only
 - Multi-sheet native `.xlsx` export (today's export is CSV — see
-  `docs/ARCHITECTURE.md` for why `.xlsx` was deliberately dropped)
+  `ARCHITECTURE.md` for why `.xlsx` was deliberately dropped)
 - Push-based (rather than open-app-triggered) net worth snapshotting
 - Charts for savings-rate trend and investment growth specifically, beyond what
   Analytics already shows
@@ -89,5 +89,5 @@ manan-wealth-os/
   docs/            architecture notes + Android run guide
 ```
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the reasoning behind the
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the reasoning behind the
 FastAPI-drop decision and the full data model.
