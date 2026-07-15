@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -62,8 +62,17 @@ export default function EditExpense() {
           router.back();
         }}
         onDelete={async () => {
-          await db.delete(expenses).where(eq(expenses.id, expenseId));
-          router.back();
+          Alert.alert("Delete expense?", "This entry will be removed from your log.", [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: async () => {
+                await db.delete(expenses).where(eq(expenses.id, expenseId));
+                router.back();
+              },
+            },
+          ]);
         }}
       />
     </SafeAreaView>

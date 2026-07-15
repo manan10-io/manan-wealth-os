@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
@@ -19,10 +19,11 @@ const INVESTMENT_TYPES = [
 ];
 
 export default function InvestmentsScreen() {
-  const { investments, totals, addInvestment, deleteInvestment } = useInvestments();
+  const { investments, totals, addInvestment, updateInvestment, deleteInvestment } = useInvestments();
   const { projections, monthlyTotal, addSip, deleteSip } = useSips();
 
   const [showInvestmentForm, setShowInvestmentForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [showSipForm, setShowSipForm] = useState(false);
 
   const [invName, setInvName] = useState("");
@@ -34,18 +35,47 @@ export default function InvestmentsScreen() {
   const [sipAmount, setSipAmount] = useState("");
   const [sipReturn, setSipReturn] = useState("12");
 
+  const resetInvestmentForm = () => {
+    setInvName("");
+    setInvType("mutual_fund");
+    setInvInvested("");
+    setInvCurrent("");
+    setEditingId(null);
+    setShowInvestmentForm(false);
+  };
+
+  const startEditing = (id: number) => {
+    const inv = investments.find((i) => i.id === id);
+    if (!inv) return;
+    setInvName(inv.name);
+    setInvType(inv.type);
+    setInvInvested(String(inv.investedAmount));
+    setInvCurrent(String(inv.currentValue));
+    setEditingId(id);
+    setShowInvestmentForm(true);
+  };
+
   const submitInvestment = async () => {
     if (!invName.trim() || !invCurrent) return;
-    await addInvestment({
+    const values = {
       name: invName.trim(),
       type: invType,
       investedAmount: parseFloat(invInvested) || parseFloat(invCurrent) || 0,
       currentValue: parseFloat(invCurrent) || 0,
-    });
-    setInvName("");
-    setInvInvested("");
-    setInvCurrent("");
-    setShowInvestmentForm(false);
+    };
+    if (editingId !== null) {
+      await updateInvestment(editingId, values);
+    } else {
+      await addInvestment(values);
+    }
+    resetInvestmentForm();
+  };
+
+  const confirmDeleteInvestment = (id: number, name: string) => {
+    Alert.alert("Delete holding?", `“${name}” will be removed from your portfolio.`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteInvestment(id) },
+    ]);
   };
 
   const submitSip = async () => {
@@ -59,6 +89,13 @@ export default function InvestmentsScreen() {
     setSipFund("");
     setSipAmount("");
     setShowSipForm(false);
+  };
+
+  const confirmDeleteSip = (id: number, name: string) => {
+    Alert.alert("Delete SIP?", `“${name}” and its projection will be removed.`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteSip(id) },
+    ]);
   };
 
   return (
@@ -85,7 +122,7 @@ export default function InvestmentsScreen() {
 
         <View className="flex-row items-center justify-between mb-3">
           <Text className="font-bodyMedium text-text text-sm">Holdings</Text>
-          <Pressable onPress={() => setShowInvestmentForm((v) => !v)}>
+          <Pressable onPress={() => (showInvestmentForm ? resetInvestmentForm() : setShowInvestmentForm(true))}>
             <Text className="font-bodyMedium text-accent text-xs">
               {showInvestmentForm ? "Cancel" : "+ Add holding"}
             </Text>
@@ -112,25 +149,44 @@ export default function InvestmentsScreen() {
             </View>
             <TextField label="Invested amount" prefix="₹" keyboardType="numeric" value={invInvested} onChangeText={setInvInvested} />
             <TextField label="Current value" prefix="₹" keyboardType="numeric" value={invCurrent} onChangeText={setInvCurrent} />
-            <Button label="Save holding" onPress={submitInvestment} />
+            <Button label={editingId !== null ? "Save changes" : "Save holding"} onPress={submitInvestment} />
           </Card>
         )}
 
+        {investments.length === 0 && !showInvestmentForm && (
+          <View className="items-center py-10">
+            <Ionicons name="trending-up-outline" size={32} color="#5B6270" />
+            <Text className="font-body text-faint text-sm mt-3">No holdings yet. Add your first one above.</Text>
+          </View>
+        )}
+
         {investments.map((inv) => (
-          <Card key={inv.id} className="mb-2 flex-row items-center justify-between">
-            <View className="flex-1">
-              <Text className="font-bodyMedium text-text text-sm">{inv.name}</Text>
-              <Text className="font-body text-faint text-xs mt-0.5">
-                {INVESTMENT_TYPES.find((t) => t.key === inv.type)?.label ?? inv.type}
-              </Text>
-            </View>
-            <View className="items-end">
-              <Text className="font-bodySemi text-text text-sm">{formatINR(inv.currentValue, { compact: true })}</Text>
-            </View>
-            <Pressable onPress={() => deleteInvestment(inv.id)} hitSlop={10} className="ml-3">
-              <Ionicons name="trash-outline" size={16} color="#5B6270" />
-            </Pressable>
-          </Card>
+          <Pressable key={inv.id} onPress={() => startEditing(inv.id)}>
+            <Card className="mb-2 flex-row items-center justify-between">
+              <View className="flex-1">
+                <Text className="font-bodyMedium text-text text-sm">{inv.name}</Text>
+                <Text className="font-body text-faint text-xs mt-0.5">
+                  {INVESTMENT_TYPES.find((t) => t.key === inv.type)?.label ?? inv.type} · tap to edit
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="font-bodySemi text-text text-sm">{formatINR(inv.currentValue, { compact: true })}</Text>
+                {inv.investedAmount !== inv.currentValue && (
+                  <Text
+                    className={`font-body text-[11px] mt-0.5 ${
+                      inv.currentValue >= inv.investedAmount ? "text-gain" : "text-loss"
+                    }`}
+                  >
+                    {inv.currentValue >= inv.investedAmount ? "+" : ""}
+                    {formatINR(inv.currentValue - inv.investedAmount, { compact: true })}
+                  </Text>
+                )}
+              </View>
+              <Pressable onPress={() => confirmDeleteInvestment(inv.id, inv.name)} hitSlop={10} className="ml-3">
+                <Ionicons name="trash-outline" size={16} color="#5B6270" />
+              </Pressable>
+            </Card>
+          </Pressable>
         ))}
 
         <View className="flex-row items-center justify-between mb-3 mt-6">
@@ -155,7 +211,7 @@ export default function InvestmentsScreen() {
           <Card key={sip.id} className="mb-2">
             <View className="flex-row items-center justify-between">
               <Text className="font-bodyMedium text-text text-sm flex-1">{sip.fundName}</Text>
-              <Pressable onPress={() => deleteSip(sip.id)} hitSlop={10}>
+              <Pressable onPress={() => confirmDeleteSip(sip.id, sip.fundName)} hitSlop={10}>
                 <Ionicons name="trash-outline" size={16} color="#5B6270" />
               </Pressable>
             </View>

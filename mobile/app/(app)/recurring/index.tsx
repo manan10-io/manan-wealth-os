@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable, Switch } from "react-native";
+import { View, Text, ScrollView, Pressable, Switch, Alert } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +31,13 @@ export default function RecurringExpensesScreen() {
     setAmount("");
     setDayOfMonth("1");
     setShowForm(false);
+  };
+
+  const confirmDelete = (id: number, templateName: string) => {
+    Alert.alert("Delete template?", `“${templateName}” will stop being auto-logged. Past expenses stay.`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteRecurring(id) },
+    ]);
   };
 
   return (
@@ -118,7 +125,7 @@ export default function RecurringExpensesScreen() {
                 trackColor={{ false: "#262B38", true: "#5B6CFF" }}
                 thumbColor="#F2F3F6"
               />
-              <Pressable onPress={() => deleteRecurring(r.id)} hitSlop={10} className="ml-3">
+              <Pressable onPress={() => confirmDelete(r.id, r.name)} hitSlop={10} className="ml-3">
                 <Ionicons name="trash-outline" size={16} color="#5B6270" />
               </Pressable>
             </Card>

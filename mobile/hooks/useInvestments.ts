@@ -34,6 +34,14 @@ export function useInvestments() {
     [refresh]
   );
 
+  const updateInvestment = useCallback(
+    async (id: number, patch: Partial<NewInvestmentInput>) => {
+      await db.update(investments).set(patch).where(eq(investments.id, id));
+      await refresh();
+    },
+    [refresh]
+  );
+
   const deleteInvestment = useCallback(
     async (id: number) => {
       await db.delete(investments).where(eq(investments.id, id));
@@ -63,5 +71,5 @@ export function useInvestments() {
     return Array.from(map.entries()).map(([type, value]) => ({ type, value }));
   }, [all]);
 
-  return { investments: all, loading, refresh, addInvestment, deleteInvestment, totals, byType };
+  return { investments: all, loading, refresh, addInvestment, updateInvestment, deleteInvestment, totals, byType };
 }

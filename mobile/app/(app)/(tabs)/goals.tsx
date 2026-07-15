@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card } from "@/components/ui/Card";
@@ -41,6 +41,13 @@ export default function GoalsScreen() {
     setShowForm(false);
   };
 
+  const confirmDelete = (id: number, goalName: string) => {
+    Alert.alert("Delete goal?", `“${goalName}” and its progress will be removed.`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteGoal(id) },
+    ]);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
@@ -74,7 +81,7 @@ export default function GoalsScreen() {
           <Card key={g.id} className="mb-3">
             <View className="flex-row items-center justify-between mb-2">
               <Text className="font-bodyMedium text-text text-sm">{g.name}</Text>
-              <Pressable onPress={() => deleteGoal(g.id)} hitSlop={10}>
+              <Pressable onPress={() => confirmDelete(g.id, g.name)} hitSlop={10}>
                 <Ionicons name="trash-outline" size={16} color="#5B6270" />
               </Pressable>
             </View>

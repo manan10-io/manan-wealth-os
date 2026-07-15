@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/database/client";
 import { salaryEntries } from "@/database/schema";
 import type { SalaryEntry } from "@/database/schema";
@@ -30,11 +30,27 @@ export function useSalary() {
 
   const addSalaryEntry = useCallback(
     async (entry: NewSalaryInput): Promise<SalarySplit | null> => {
-      await db.insert(salaryEntries).values(entry);
+      // One entry per month: re-logging the same month replaces the row and
+      // must NOT re-run the emergency-fund top-up, or every correction would
+      // silently double the automated transfer.
+      const existing = await db
+        .select()
+        .from(salaryEntries)
+        .where(eq(salaryEntries.month, entry.month));
+      const isFirstEntryForMonth = existing.length === 0;
+
+      if (isFirstEntryForMonth) {
+        await db.insert(salaryEntries).values(entry);
+      } else {
+        await db.update(salaryEntries).set(entry).where(eq(salaryEntries.id, existing[0].id));
+      }
+
       let split: SalarySplit | null = null;
       const profile = useAppStore.getState().profile;
       if (profile) {
-        split = await applySalaryAutomation(entry.inHandSalary, profile);
+        split = await applySalaryAutomation(entry.inHandSalary, profile, {
+          applyEmergencyTopUp: isFirstEntryForMonth,
+        });
         await syncCurrentMonthNetWorthSnapshot().catch(() => {});
       }
       await refresh();
@@ -43,7 +59,15 @@ export function useSalary() {
     [refresh]
   );
 
+  const deleteSalaryEntry = useCallback(
+    async (id: number) => {
+      await db.delete(salaryEntries).where(eq(salaryEntries.id, id));
+      await refresh();
+    },
+    [refresh]
+  );
+
   const latest = all[0] ?? null;
 
-  return { salaryEntries: all, loading, refresh, addSalaryEntry, latest };
+  return { salaryEntries: all, loading, refresh, addSalaryEntry, deleteSalaryEntry, latest };
 }

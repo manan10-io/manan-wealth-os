@@ -23,13 +23,15 @@ export type SalarySplit = {
  */
 export async function applySalaryAutomation(
   inHandSalary: number,
-  profile: Pick<Profile, "savingsGoalPercent" | "sipAllocationPercent" | "emergencyFundAllocationPercent">
+  profile: Pick<Profile, "savingsGoalPercent" | "sipAllocationPercent" | "emergencyFundAllocationPercent">,
+  opts: { applyEmergencyTopUp?: boolean } = {}
 ): Promise<SalarySplit> {
+  const { applyEmergencyTopUp = true } = opts;
   const savingsAmount = (inHandSalary * (profile.savingsGoalPercent ?? 30)) / 100;
   const sipAmount = (inHandSalary * (profile.sipAllocationPercent ?? 20)) / 100;
   const emergencyFundAmount = (inHandSalary * (profile.emergencyFundAllocationPercent ?? 10)) / 100;
 
-  if (emergencyFundAmount > 0) {
+  if (applyEmergencyTopUp && emergencyFundAmount > 0) {
     const existing = await db
       .select()
       .from(investments)

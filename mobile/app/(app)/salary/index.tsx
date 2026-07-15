@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,7 +11,7 @@ import { formatINR, currentMonthKey, todayISO } from "@/services/format";
 import type { SalarySplit } from "@/services/salaryAutomation";
 
 export default function SalaryScreen() {
-  const { salaryEntries, latest, addSalaryEntry } = useSalary();
+  const { salaryEntries, latest, addSalaryEntry, deleteSalaryEntry } = useSalary();
   const [gross, setGross] = useState(latest ? String(latest.grossSalary) : "");
   const [inHand, setInHand] = useState(latest ? String(latest.inHandSalary) : "");
   const [pf, setPf] = useState("");
@@ -112,7 +112,20 @@ export default function SalaryScreen() {
             {salaryEntries.map((s) => (
               <View key={s.id} className="flex-row items-center justify-between py-2 border-b border-border/60">
                 <Text className="font-body text-muted text-xs">{s.month}</Text>
-                <Text className="font-bodyMedium text-text text-sm">{formatINR(s.inHandSalary)}</Text>
+                <View className="flex-row items-center gap-3">
+                  <Text className="font-bodyMedium text-text text-sm">{formatINR(s.inHandSalary)}</Text>
+                  <Pressable
+                    onPress={() =>
+                      Alert.alert("Delete entry?", `The ${s.month} salary entry will be removed.`, [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Delete", style: "destructive", onPress: () => deleteSalaryEntry(s.id) },
+                      ])
+                    }
+                    hitSlop={10}
+                  >
+                    <Ionicons name="trash-outline" size={14} color="#5B6270" />
+                  </Pressable>
+                </View>
               </View>
             ))}
           </>
