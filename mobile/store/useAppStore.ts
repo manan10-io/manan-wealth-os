@@ -4,7 +4,7 @@ import { db, initDatabase } from "@/database/client";
 import { profile as profileTable } from "@/database/schema";
 import type { Profile } from "@/database/schema";
 import { hashPin, verifyPin, markUnlocked, isUnlocked as checkUnlocked, lock as lockSession } from "@/services/pin";
-import { scheduleDailyReminder } from "@/services/notifications";
+import { scheduleDailyReminder, cancelDailyReminder } from "@/services/notifications";
 import { applyDueRecurringExpenses } from "@/services/recurring";
 import { syncCurrentMonthNetWorthSnapshot } from "@/services/netWorth";
 
@@ -26,6 +26,7 @@ type AppState = {
   unlockWithPin: (pin: string) => Promise<boolean>;
   lockApp: () => Promise<void>;
   updateReminderTime: (hour: number, minute: number) => Promise<void>;
+  setReminderEnabled: (enabled: boolean) => Promise<void>;
   updateAutomationPercents: (savings: number, sip: number, emergency: number) => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -43,6 +44,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (p?.onboardingCompleted) {
       await applyDueRecurringExpenses().catch(() => {});
       await syncCurrentMonthNetWorthSnapshot().catch(() => {});
+      // Re-arm the daily reminder — scheduling is idempotent, and OS updates
+      // or "clear all" can silently drop scheduled notifications.
+      if (p.reminderEnabled) {
+        await scheduleDailyReminder(p.reminderHour, p.reminderMinute).catch(() => {});
+      }
     }
     set({ ready: true, profile: p, unlocked });
   },
@@ -96,9 +102,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!p) return;
     await db
       .update(profileTable)
-      .set({ reminderHour: hour, reminderMinute: minute })
+      .set({ reminderHour: hour, reminderMinute: minute, reminderEnabled: true })
       .where(eq(profileTable.id, p.id));
     await scheduleDailyReminder(hour, minute);
+    await get().refreshProfile();
+  },
+
+  setReminderEnabled: async (enabled) => {
+    const p = get().profile;
+    if (!p) return;
+    await db.update(profileTable).set({ reminderEnabled: enabled }).where(eq(profileTable.id, p.id));
+    if (enabled) {
+      await scheduleDailyReminder(p.reminderHour, p.reminderMinute);
+    } else {
+      await cancelDailyReminder();
+    }
     await get().refreshProfile();
   },
 

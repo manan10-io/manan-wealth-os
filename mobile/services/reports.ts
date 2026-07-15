@@ -107,7 +107,8 @@ export async function exportExpensesCSV(): Promise<void> {
     rows.map((e) => [e.date, categoryByKey(e.category).label, e.amount, e.paymentMethod ?? "", e.notes ?? ""])
   );
   const path = `${FileSystem.cacheDirectory}manan-wealth-os-expenses-${Date.now()}.csv`;
-  await FileSystem.writeAsStringAsync(path, csv, { encoding: FileSystem.EncodingType.UTF8 });
+  // BOM so Excel detects UTF-8 — without it, ₹ and other non-ASCII notes render as mojibake.
+  await FileSystem.writeAsStringAsync(path, "\uFEFF" + csv, { encoding: FileSystem.EncodingType.UTF8 });
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(path, { mimeType: "text/csv", dialogTitle: "Expenses export" });
   }

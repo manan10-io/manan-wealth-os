@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable, Alert } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert, Switch } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -40,6 +40,7 @@ export default function SettingsScreen() {
   const profile = useAppStore((s) => s.profile);
   const lockApp = useAppStore((s) => s.lockApp);
   const updateReminderTime = useAppStore((s) => s.updateReminderTime);
+  const setReminderEnabled = useAppStore((s) => s.setReminderEnabled);
   const updateAutomationPercents = useAppStore((s) => s.updateAutomationPercents);
 
   const [hour, setHour] = useState(String(profile?.reminderHour ?? 21));
@@ -96,9 +97,29 @@ export default function SettingsScreen() {
 
         <Text className="font-bodyMedium text-muted text-xs mb-2">DAILY REMINDER</Text>
         <Card className="mb-6 gap-3">
-          <Text className="font-body text-faint text-xs">
-            “Manan, what expenses did you have today?” — sent locally, every evening.
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="font-body text-faint text-xs flex-1 pr-3">
+              “Manan, what expenses did you have today?” — sent locally, every evening.
+            </Text>
+            <Switch
+              value={profile?.reminderEnabled ?? true}
+              onValueChange={async (v) => {
+                if (v) {
+                  const granted = await requestNotificationPermissions();
+                  if (!granted) {
+                    Alert.alert(
+                      "Notifications disabled",
+                      "Enable notifications in system settings to get the daily reminder."
+                    );
+                    return;
+                  }
+                }
+                await setReminderEnabled(v);
+              }}
+              trackColor={{ false: "#262B38", true: "#5B6CFF" }}
+              thumbColor="#F2F3F6"
+            />
+          </View>
           <View className="flex-row gap-3">
             <View className="flex-1">
               <TextField label="Hour (0–23)" keyboardType="numeric" value={hour} onChangeText={setHour} />
