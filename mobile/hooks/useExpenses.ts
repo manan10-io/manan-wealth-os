@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { desc, eq, like } from "drizzle-orm";
 import { db } from "@/database/client";
 import { expenses } from "@/database/schema";
 import type { Expense, NewExpense } from "@/database/schema";
-import { currentMonthKey, todayISO } from "@/services/format";
+import { currentMonthKey, todayISO, toLocalISO } from "@/services/format";
 
 export function useExpenses() {
   const [all, setAll] = useState<Expense[]>([]);
@@ -16,9 +17,13 @@ export function useExpenses() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // Tab screens stay mounted in expo-router, so refetch on every focus —
+  // otherwise the list goes stale after the add/edit modals write to SQLite.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const addExpense = useCallback(
     async (entry: Omit<NewExpense, "id" | "createdAt">) => {
@@ -69,7 +74,7 @@ export function useExpenses() {
   const last7Days = useMemo(() => {
     const days: { date: string; total: number }[] = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const d = toLocalISO(new Date(Date.now() - i * 86400000));
       const total = all.filter((e) => e.date === d).reduce((s, e) => s + e.amount, 0);
       days.push({ date: d, total });
     }

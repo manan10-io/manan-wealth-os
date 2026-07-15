@@ -6,12 +6,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useExpenses } from "@/hooks/useExpenses";
 import { ExpenseRow } from "@/components/expenses/ExpenseRow";
 import { QUICK_ADD_CATEGORIES } from "@/constants/categories";
-import { formatDateLabel, formatINR, todayISO } from "@/services/format";
-import { db } from "@/database/client";
-import { expenses } from "@/database/schema";
+import { formatDateLabel, formatINR } from "@/services/format";
 
 export default function ExpensesScreen() {
-  const { expenses: all, refresh, monthTotal } = useExpenses();
+  const { expenses: all, monthTotal } = useExpenses();
 
   const sections = useMemo(() => {
     const byDate = new Map<string, typeof all>();
@@ -29,18 +27,10 @@ export default function ExpensesScreen() {
       }));
   }, [all]);
 
-  const quickAdd = async (categoryKey: string) => {
-    await db.insert(expenses).values({
-      date: todayISO(),
-      category: categoryKey,
-      amount: 0,
-      notes: null,
-    });
-    // 0-amount placeholder — jump straight into edit so the amount gets filled in.
-    const rows = await db.select().from(expenses).orderBy(expenses.id);
-    const created = rows[rows.length - 1];
-    refresh();
-    if (created) router.push(`/expenses/${created.id}`);
+  // Opens the add modal with the category pre-selected — nothing is written
+  // until the user actually saves, so cancelling leaves no phantom ₹0 rows.
+  const quickAdd = (categoryKey: string) => {
+    router.push({ pathname: "/expenses/add", params: { category: categoryKey } });
   };
 
   return (

@@ -10,7 +10,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useAppStore } from "@/store/useAppStore";
 import { db } from "@/database/client";
 import { investments as investmentsTable, sips as sipsTable } from "@/database/schema";
-import { formatINR } from "@/services/format";
+import { formatINR, todayISO } from "@/services/format";
 
 type DraftInvestment = { name: string; type: string; currentValue: string };
 type DraftSip = { fundName: string; monthlyAmount: string };
@@ -76,7 +76,7 @@ export default function Onboarding() {
         await db.insert(sipsTable).values({
           fundName: sip.fundName.trim(),
           monthlyAmount: parseFloat(sip.monthlyAmount) || 0,
-          startDate: new Date().toISOString().slice(0, 10),
+          startDate: todayISO(),
           expectedReturnPercent: 12,
         });
       }

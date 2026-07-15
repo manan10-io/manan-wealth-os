@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/database/client";
 import { investments } from "@/database/schema";
@@ -17,9 +18,13 @@ export function useInvestments() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // Refetch on focus — salary automation and onboarding write to this table
+  // from other screens while this one stays mounted.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const addInvestment = useCallback(
     async (entry: NewInvestmentInput) => {

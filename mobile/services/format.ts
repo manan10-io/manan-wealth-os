@@ -11,8 +11,16 @@ export function formatINR(amount: number, opts?: { compact?: boolean }): string 
   }).format(amount);
 }
 
+/** Local-time ISO date (YYYY-MM-DD). Never use toISOString() for calendar
+ * dates — it's UTC, which shifts everything before 5:30 AM IST to yesterday. */
+export function toLocalISO(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`;
+}
+
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return toLocalISO(new Date());
 }
 
 export function currentMonthKey(date = new Date()): string {
@@ -22,7 +30,7 @@ export function currentMonthKey(date = new Date()): string {
 export function formatDateLabel(iso: string): string {
   const d = new Date(iso + "T00:00:00");
   const today = todayISO();
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const yesterday = toLocalISO(new Date(Date.now() - 86400000));
   if (iso === today) return "Today";
   if (iso === yesterday) return "Yesterday";
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { desc } from "drizzle-orm";
 import { db } from "@/database/client";
 import { salaryEntries } from "@/database/schema";
@@ -20,9 +21,12 @@ export function useSalary() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // Refetch on focus so every screen sharing this hook stays in sync.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const addSalaryEntry = useCallback(
     async (entry: NewSalaryInput): Promise<SalarySplit | null> => {

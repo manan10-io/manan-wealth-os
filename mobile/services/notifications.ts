@@ -52,3 +52,22 @@ export async function scheduleDailyReminder(hour: number, minute: number) {
 export async function cancelDailyReminder() {
   await Notifications.cancelScheduledNotificationAsync(DAILY_REMINDER_ID).catch(() => {});
 }
+
+/**
+ * Routes notification taps to the screen carried in the payload
+ * (`data.screen`, e.g. "/expenses/add"). Handles both the cold-start case
+ * (app launched by the tap) and the warm case (app already running).
+ * Returns an unsubscribe function.
+ */
+export function listenForNotificationTaps(navigate: (screen: string) => void): () => void {
+  Notifications.getLastNotificationResponseAsync().then((response) => {
+    const screen = response?.notification.request.content.data?.screen;
+    if (typeof screen === "string") navigate(screen);
+  });
+
+  const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+    const screen = response.notification.request.content.data?.screen;
+    if (typeof screen === "string") navigate(screen);
+  });
+  return () => sub.remove();
+}

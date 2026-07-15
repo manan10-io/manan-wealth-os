@@ -1,12 +1,17 @@
 import { View, Text, Pressable } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ExpenseForm } from "@/components/expenses/ExpenseForm";
 import { db } from "@/database/client";
 import { expenses } from "@/database/schema";
+import { ALL_CATEGORIES } from "@/constants/categories";
 
 export default function AddExpense() {
+  // Quick-add chips land here with ?category=food etc. — pre-select it.
+  const { category } = useLocalSearchParams<{ category?: string }>();
+  const validCategory = ALL_CATEGORIES.some((c) => c.key === category) ? category : undefined;
+
   return (
     <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
       <View className="flex-row items-center justify-between px-5 pt-2 pb-1">
@@ -16,6 +21,7 @@ export default function AddExpense() {
         </Pressable>
       </View>
       <ExpenseForm
+        defaultValues={validCategory ? { category: validCategory } : undefined}
         onSubmit={async (values) => {
           await db.insert(expenses).values({
             date: values.date,

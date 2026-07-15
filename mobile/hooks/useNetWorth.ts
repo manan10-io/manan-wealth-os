@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { asc } from "drizzle-orm";
 import { db } from "@/database/client";
 import { netWorthSnapshots } from "@/database/schema";
@@ -17,9 +18,12 @@ export function useNetWorthHistory() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // Refetch on focus so every screen sharing this hook stays in sync.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   return { snapshots, loading, refresh };
 }

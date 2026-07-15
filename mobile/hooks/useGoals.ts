@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/database/client";
 import { goals } from "@/database/schema";
@@ -17,9 +18,12 @@ export function useGoals() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // Refetch on focus so every screen sharing this hook stays in sync.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const addGoal = useCallback(
     async (entry: NewGoalInput) => {

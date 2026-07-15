@@ -1,7 +1,4 @@
 import * as Crypto from "expo-crypto";
-import * as SecureStore from "expo-secure-store";
-
-const SESSION_KEY = "manan_wealth_os_unlocked_session";
 
 export async function hashPin(pin: string): Promise<string> {
   return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pin);
@@ -12,16 +9,21 @@ export async function verifyPin(pin: string, storedHash: string): Promise<boolea
   return hash === storedHash;
 }
 
-/** Marks the app unlocked for this OS-level session (cleared on force-quit). */
+/**
+ * Unlock state is deliberately in-memory only: a cold start always lands on
+ * the PIN screen. (It used to live in SecureStore, but SecureStore persists
+ * across restarts, which meant the PIN was asked exactly once, ever.)
+ */
+let unlockedThisSession = false;
+
 export async function markUnlocked() {
-  await SecureStore.setItemAsync(SESSION_KEY, "1");
+  unlockedThisSession = true;
 }
 
 export async function isUnlocked(): Promise<boolean> {
-  const v = await SecureStore.getItemAsync(SESSION_KEY);
-  return v === "1";
+  return unlockedThisSession;
 }
 
 export async function lock() {
-  await SecureStore.deleteItemAsync(SESSION_KEY);
+  unlockedThisSession = false;
 }

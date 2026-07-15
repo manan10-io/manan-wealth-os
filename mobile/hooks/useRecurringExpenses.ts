@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/database/client";
 import { recurringExpenses } from "@/database/schema";
@@ -17,9 +18,12 @@ export function useRecurringExpenses() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // Refetch on focus so every screen sharing this hook stays in sync.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const addRecurring = useCallback(
     async (entry: NewRecurringInput) => {

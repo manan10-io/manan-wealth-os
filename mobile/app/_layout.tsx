@@ -1,7 +1,7 @@
 import "../global.css";
 import { useEffect, useCallback } from "react";
 import { View } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -14,6 +14,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { useFonts as useSora, Sora_600SemiBold, Sora_700Bold } from "@expo-google-fonts/sora";
 import { useAppStore } from "@/store/useAppStore";
+import { listenForNotificationTaps } from "@/services/notifications";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -26,6 +27,22 @@ export default function RootLayout() {
   useEffect(() => {
     bootstrap();
   }, [bootstrap]);
+
+  // Route notification taps (the daily 9 PM reminder deep-links to
+  // /expenses/add). If the app is PIN-locked, land on the lock screen
+  // instead — never let a notification bypass the lock.
+  useEffect(() => {
+    if (!ready) return;
+    return listenForNotificationTaps((screen) => {
+      const { profile, unlocked } = useAppStore.getState();
+      if (!profile?.onboardingCompleted) return;
+      if (!unlocked) {
+        router.push("/pin-lock");
+        return;
+      }
+      router.push(screen as never);
+    });
+  }, [ready]);
 
   const onLayout = useCallback(async () => {
     if (interLoaded && soraLoaded && ready) {
