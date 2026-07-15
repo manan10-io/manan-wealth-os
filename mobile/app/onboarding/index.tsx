@@ -187,7 +187,7 @@ export default function Onboarding() {
             <View className="pt-8 gap-5">
               <StepHeader title="Existing investments" subtitle="Step 4 of 6 · Optional" />
               <Text className="font-body text-faint text-xs -mt-3">
-                Add anything you already hold — mutual funds, stocks, gold, FDs. Skip if you're starting fresh.
+                Add anything you already hold — mutual funds, stocks, gold, FDs. Skip if you’re starting fresh.
               </Text>
               {draftInvestments.map((inv, i) => (
                 <Card key={i} className="gap-3">
@@ -229,7 +229,7 @@ export default function Onboarding() {
             <View className="pt-8 gap-5">
               <StepHeader title="Active SIPs" subtitle="Step 5 of 6 · Optional" />
               <Text className="font-body text-faint text-xs -mt-3">
-                Your running SIPs — we'll project their future value on the SIP tab.
+                Your running SIPs — we’ll project their future value on the SIP tab.
               </Text>
               {draftSips.map((sip, i) => (
                 <Card key={i} className="gap-3">
@@ -267,7 +267,7 @@ export default function Onboarding() {
             <View className="pt-8 gap-5">
               <StepHeader title="Set a 4-digit PIN" subtitle="Step 6 of 6 · Security" />
               <Text className="font-body text-faint text-xs -mt-3">
-                This locks the app on your device only. It's never sent anywhere — there's nowhere to send it.
+                This locks the app on your device only. It’s never sent anywhere — there’s nowhere to send it.
               </Text>
               <TextField
                 label="Enter PIN"

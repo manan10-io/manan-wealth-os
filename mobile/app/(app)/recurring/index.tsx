@@ -44,7 +44,7 @@ export default function RecurringExpensesScreen() {
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         <Text className="font-body text-faint text-xs mb-4">
-          Rent, Netflix, gym, internet — anything that bills you the same amount every month. We'll
+          Rent, Netflix, gym, internet — anything that bills you the same amount every month. We’ll
           auto-log it as an expense on its due day, once, without you having to remember.
         </Text>
 

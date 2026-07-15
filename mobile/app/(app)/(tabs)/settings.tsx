@@ -97,7 +97,7 @@ export default function SettingsScreen() {
         <Text className="font-bodyMedium text-muted text-xs mb-2">DAILY REMINDER</Text>
         <Card className="mb-6 gap-3">
           <Text className="font-body text-faint text-xs">
-            "Manan, what expenses did you have today?" — sent locally, every evening.
+            “Manan, what expenses did you have today?” — sent locally, every evening.
           </Text>
           <View className="flex-row gap-3">
             <View className="flex-1">
@@ -134,7 +134,7 @@ export default function SettingsScreen() {
         <Card className="mb-6 gap-3">
           <Text className="font-body text-faint text-xs">
             Your data lives only in one SQLite file on this phone. Export it regularly and keep the copy
-            somewhere safe — there's no cloud copy to fall back on.
+            somewhere safe — there’s no cloud copy to fall back on.
           </Text>
           <Button label="Export backup (.db)" variant="secondary" onPress={withBusy("export", exportDatabase)} loading={busy === "export"} />
           <Button label="Restore from backup (.db)" variant="secondary" onPress={withBusy("import", async () => {
@@ -168,7 +168,7 @@ export default function SettingsScreen() {
             loading={busy === "importEnc"}
           />
           <Text className="font-body text-faint text-[11px]">
-            There's no password recovery — if you forget it, that encrypted backup can't be opened again.
+            There’s no password recovery — if you forget it, that encrypted backup can’t be opened again.
           </Text>
         </Card>
 

@@ -49,7 +49,7 @@ export default function SalaryScreen() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         {lastSplit && (
           <Card className="mb-5 bg-accentSoft border-accent/20">
-            <Text className="font-bodyMedium text-text text-sm mb-3">This month's auto-split</Text>
+            <Text className="font-bodyMedium text-text text-sm mb-3">This month’s auto-split</Text>
             <View className="flex-row justify-between">
               <View>
                 <Text className="font-body text-faint text-[11px]">Savings</Text>
@@ -66,7 +66,7 @@ export default function SalaryScreen() {
             </View>
             <Text className="font-body text-faint text-[11px] mt-3">
               Emergency Fund amount was added automatically to your Investments. Savings and SIP are your
-              targets to act on — SIPs run as separate bank debits, so we can't move that money for you.
+              targets to act on — SIPs run as separate bank debits, so we can’t move that money for you.
             </Text>
           </Card>
         )}
@@ -96,7 +96,7 @@ export default function SalaryScreen() {
           </Card>
         )}
 
-        <Text className="font-bodyMedium text-text text-sm mb-3">Log this month's salary</Text>
+        <Text className="font-bodyMedium text-text text-sm mb-3">Log this month’s salary</Text>
         <Card className="gap-3 mb-6">
           <TextField label="Gross salary" prefix="₹" keyboardType="numeric" value={gross} onChangeText={setGross} />
           <TextField label="In-hand salary" prefix="₹" keyboardType="numeric" value={inHand} onChangeText={setInHand} />

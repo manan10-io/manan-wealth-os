@@ -65,7 +65,7 @@ export default function GoalsScreen() {
           <View className="items-center py-16">
             <Ionicons name="flag-outline" size={32} color="#5B6270" />
             <Text className="font-body text-faint text-sm mt-3 text-center">
-              No goals yet.{"\n"}Try Emergency Fund, Car Fund, or a Parents' Vacation.
+              No goals yet.{"\n"}Try Emergency Fund, Car Fund, or a Parents’ Vacation.
             </Text>
           </View>
         )}
