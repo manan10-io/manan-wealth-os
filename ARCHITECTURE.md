@@ -31,12 +31,28 @@ it once the schema needs to change under existing users' data).
 
 - **Zustand** (`store/useAppStore.ts`) holds the one piece of truly global state:
   the profile row, onboarding/lock status. This is what routing guards read.
+- **PIN lock** state is deliberately in-memory only (`services/pin.ts`) — a cold
+  start always lands on the PIN screen. The PIN itself is stored as a SHA-256
+  hash on the profile row, never in plain text.
 - Everything else — expenses, investments, SIPs, goals, salary — is a plain data
   hook (`hooks/use*.ts`) that queries SQLite directly and exposes CRUD functions
-  plus derived totals. There's no separate cache layer; SQLite reads are fast enough
-  on-device that refetch-after-mutation is simpler and just as fast as a cache would
-  be for this data volume.
+  plus derived totals. Hooks refetch on screen focus (`useFocusEffect`) because
+  expo-router keeps tab screens mounted — without it, totals go stale after the
+  add/edit modals write to SQLite. There's no separate cache layer; on-device
+  SQLite reads are fast enough that refetch-after-focus is simpler and just as
+  fast as a cache would be for this data volume.
 - **React Hook Form** drives the expense add/edit form.
+
+## Backup format notes
+
+- Plain export checkpoints the WAL (`PRAGMA wal_checkpoint(TRUNCATE)`) before
+  copying the `.db` file — the app runs WAL mode, so recent writes otherwise
+  live only in the `-wal` sidecar and would be missing from the backup.
+- Restore validates the SQLite magic bytes before overwriting the live DB and
+  deletes stale `-wal`/`-shm` sidecars so an old WAL isn't replayed on top of
+  the restored data.
+- Encrypted backups are the same bytes, base64'd and AES-encrypted (crypto-js)
+  with a user password; the magic-byte check doubles as password validation.
 
 ## Navigation
 
