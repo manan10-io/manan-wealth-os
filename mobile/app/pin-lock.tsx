@@ -3,6 +3,12 @@ import { View, Text, Pressable } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { useAppStore } from "@/store/useAppStore";
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "back"];
@@ -12,6 +18,11 @@ export default function PinLock() {
   const unlockWithPin = useAppStore((s) => s.unlockWithPin);
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const shake = useSharedValue(0);
+
+  const dotsStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shake.value }],
+  }));
 
   const onKey = async (key: string) => {
     if (key === "") return;
@@ -29,6 +40,16 @@ export default function PinLock() {
         router.replace("/(app)/(tabs)/dashboard");
       } else {
         setError(true);
+        // .set() instead of .value= — the React Compiler-safe reanimated API.
+        shake.set(
+          withSequence(
+            withTiming(-10, { duration: 50 }),
+            withTiming(10, { duration: 50 }),
+            withTiming(-6, { duration: 50 }),
+            withTiming(6, { duration: 50 }),
+            withTiming(0, { duration: 50 })
+          )
+        );
         setTimeout(() => {
           setPin("");
           setError(false);
@@ -48,7 +69,7 @@ export default function PinLock() {
         </Text>
         <Text className="font-body text-muted text-sm mb-8">Enter your PIN to unlock</Text>
 
-        <View className="flex-row gap-4">
+        <Animated.View style={dotsStyle} className="flex-row gap-4">
           {[0, 1, 2, 3].map((i) => (
             <View
               key={i}
@@ -57,7 +78,7 @@ export default function PinLock() {
               }`}
             />
           ))}
-        </View>
+        </Animated.View>
       </View>
 
       <View className="w-full px-10">
